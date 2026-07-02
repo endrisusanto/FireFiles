@@ -1,7 +1,0 @@
-{
-  "identifier": "default",
-  "description": "FireFiles Setup permissions",
-  "local": true,
-  "windows": ["main"],
-  "permissions": ["core:default"]
-}

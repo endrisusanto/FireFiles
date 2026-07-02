@@ -12,23 +12,49 @@
       <img src="/src/firefiles-logo.svg" alt="">
       <div>
         <h1>FireFiles</h1>
-        <p>Windows to Android firmware bridge</p>
+        <p>Windows & Linux firmware bridge</p>
       </div>
       <span id="state">stopped</span>
     </header>
 
-    <section class="grid">
-      <label>Source folder<input id="source" placeholder="D:\Downloads"></label>
-      <label>Backup folder<input id="backup" placeholder="D:\FirmwareBackup"></label>
-      <label>ADB path<input id="adb" value="adb"></label>
-      <label>Android path<input id="androidDir" value="/sdcard/FirmwareBridge"></label>
-      <label>Device serial<input id="serial" placeholder="optional"></label>
-      <label>Stable seconds<input id="stableSecs" type="number" min="2" value="20"></label>
-    </section>
+    <!-- Tab navigation -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="app-tab">App Control</button>
+      <button class="tab-btn" data-tab="setup-tab">Auto Setup / Sync</button>
+    </div>
 
-    <div class="actions">
-      <button id="start">Start</button>
-      <button id="stop">Stop</button>
+    <!-- Main App Tab -->
+    <div id="app-tab" class="tab-content active">
+      <section class="grid">
+        <label>Source folder<input id="source" placeholder="D:\Downloads"></label>
+        <label>Backup folder<input id="backup" placeholder="D:\FirmwareBackup"></label>
+        <label>ADB path<input id="adb" value="adb"></label>
+        <label>Android path<input id="androidDir" value="/sdcard/FirmwareBridge"></label>
+        <label>Device serial<input id="serial" placeholder="optional"></label>
+        <label>Stable seconds<input id="stableSecs" type="number" min="2" value="20"></label>
+      </section>
+
+      <div class="actions">
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+      </div>
+    </div>
+
+    <!-- Auto Setup Tab -->
+    <div id="setup-tab" class="tab-content">
+      <section class="grid">
+        <label class="linux-only">Samba Folder Path<input id="shareDir" placeholder="/home/firmware/inbox"></label>
+        <label class="linux-only">Samba Share Name<input id="shareName" value="FirmwareInbox"></label>
+        <label class="linux-only">Samba Username<input id="smbUser" value="firmware"></label>
+        <label class="linux-only">Samba Password<input id="smbPass" placeholder="Auto-generated / Manual"></label>
+        <label>Monitor URL<input id="monitorUrl" value="https://files.endrisusanto.my.id"></label>
+        <label>Monitor Token<input id="monitorToken" placeholder="change-me"></label>
+      </section>
+
+      <div class="actions">
+        <button id="setupSambaBtn" class="linux-only">⚡ Setup Samba & Register</button>
+        <button id="fetchConfigBtn">📥 Fetch Config from Server</button>
+      </div>
     </div>
 
     <pre id="log">Close hides this app to tray. Use tray menu to show or quit.</pre>

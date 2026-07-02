@@ -23,8 +23,11 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi"],
+    "targets": ["msi", "deb", "appimage"],
     "icon": ["icons/icon.png", "icons/icon.ico"],
-    "resources": ["binaries/firefiles-worker-x86_64-pc-windows-msvc.exe"]
+    "resources": [
+      "binaries/firefiles-worker-x86_64-pc-windows-msvc.exe",
+      "binaries/firefiles-worker-x86_64-unknown-linux-gnu"
+    ]
   }
 }

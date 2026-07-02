@@ -86,17 +86,120 @@ fn is_running(state: State<Worker>) -> Result<bool, String> {
 }
 
 fn worker_exe(app: &AppHandle) -> PathBuf {
+    #[cfg(target_os = "windows")]
+    let name = "firefiles-worker-x86_64-pc-windows-msvc.exe";
+    #[cfg(target_os = "linux")]
+    let name = "firefiles-worker-x86_64-unknown-linux-gnu";
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    let name = "firefiles-worker";
+
     if let Ok(dir) = app.path().resource_dir() {
-        let bundled = dir.join("firefiles-worker.exe");
+        let bundled = dir.join("binaries").join(name);
         if bundled.exists() {
             return bundled;
+        }
+        let bundled_root = dir.join(name);
+        if bundled_root.exists() {
+            return bundled_root;
         }
     }
     std::env::current_exe()
         .ok()
-        .and_then(|p| p.parent().map(|dir| dir.join("firefiles-worker.exe")))
+        .and_then(|p| p.parent().map(|dir| dir.join(name)))
         .filter(|p| p.exists())
-        .unwrap_or_else(|| PathBuf::from("firefiles-worker.exe"))
+        .unwrap_or_else(|| PathBuf::from(name))
+}
+
+use std::{fs, io::Read, net::UdpSocket};
+
+#[tauri::command]
+fn detect_ip() -> String {
+    UdpSocket::bind("0.0.0.0:0")
+        .ok()
+        .and_then(|s| {
+            s.connect("8.8.8.8:80").ok()?;
+            s.local_addr().ok()
+        })
+        .map(|a| a.ip().to_string())
+        .unwrap_or_else(|| "127.0.0.1".to_string())
+}
+
+#[tauri::command]
+fn generate_password() -> String {
+    let mut buf = [0u8; 12];
+    fs::File::open("/dev/urandom")
+        .ok()
+        .and_then(|mut f| f.read_exact(&mut buf).ok());
+    buf.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[tauri::command]
+fn setup_samba(
+    share_dir: String,
+    share_name: String,
+    user: String,
+    pass: String,
+) -> Result<String, String> {
+    // Di Linux, jalankan script setup samba via pkexec
+    #[cfg(target_os = "linux")]
+    {
+        let script_path = "/usr/share/firefiles/setup-samba.sh";
+        let status = Command::new("pkexec")
+            .args([
+                "bash",
+                script_path,
+                &share_dir,
+                &user,
+                &share_name,
+                &pass,
+            ])
+            .status()
+            .map_err(|e| format!("pkexec failed: {e}"))?;
+
+        if status.success() {
+            Ok(format!("Samba share '{share_name}' siap di {share_dir}"))
+        } else {
+            Err(format!("Setup gagal (exit {})", status.code().unwrap_or(-1)))
+        }
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        Err("Setup Samba hanya disupport di Linux".into())
+    }
+}
+
+#[tauri::command]
+fn register_config(
+    url: String,
+    token: String,
+    host: String,
+    share: String,
+    user: String,
+    pass: String,
+    folder: String,
+) -> Result<(), String> {
+    let body = format!(
+        r#"{{"host":"{host}","share":"{share}","user":"{user}","pass":"{pass}","folder":"{folder}"}}"#
+    );
+    let endpoint = format!("{}/api/smb-config", url.trim_end_matches('/'));
+    ureq::post(&endpoint)
+        .set("content-type", "application/json")
+        .set("x-monitor-token", &token)
+        .send_string(&body)
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn fetch_smb_config(url: String, token: String) -> Result<String, String> {
+    let endpoint = format!("{}/api/smb-config", url.trim_end_matches('/'));
+    let resp = ureq::get(&endpoint)
+        .set("x-monitor-token", &token)
+        .call()
+        .map_err(|e| e.to_string())?
+        .into_string()
+        .map_err(|e| e.to_string())?;
+    Ok(resp)
 }
 
 fn main() {
@@ -128,7 +231,17 @@ fn main() {
                 let _ = window.hide();
             }
         })
-        .invoke_handler(tauri::generate_handler![start_worker, stop_worker, is_running])
+        .invoke_handler(tauri::generate_handler![
+            start_worker,
+            stop_worker,
+            is_running,
+            detect_ip,
+            generate_password,
+            setup_samba,
+            register_config,
+            fetch_smb_config
+        ])
         .run(tauri::generate_context!())
         .expect("error while running FireFiles");
 }
+
