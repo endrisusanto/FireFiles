@@ -42,11 +42,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: current
-      - run: gradle assembleRelease
+      - run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: firefiles-apk
-          path: android-app/app/build/outputs/apk/release/*.apk
+          path: android-app/app/build/outputs/apk/debug/*.apk
 
   deb:
     runs-on: ubuntu-latest

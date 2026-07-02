@@ -7,6 +7,7 @@ import os
 DATA = Path(os.environ.get("DATA_FILE", "/data/devices.json"))
 TOKEN = os.environ.get("MONITOR_TOKEN", "")
 STALE_AFTER = int(os.environ.get("STALE_AFTER_SEC", "1800"))
+LOGO = Path(__file__).with_name("assets") / "firefiles-logo.svg"
 
 
 def read_devices():
@@ -25,6 +26,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/devices":
             return self.json(devices_with_age())
+        if self.path == "/logo.svg":
+            body = LOGO.read_bytes()
+            self.send_response(200)
+            self.send_header("content-type", "image/svg+xml")
+            self.send_header("cache-control", "public, max-age=3600")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if self.path == "/":
             body = HTML.encode()
             self.send_response(200)
@@ -86,7 +96,7 @@ HTML = r"""<!doctype html>
     :root{color-scheme:light;--bg:#eef2f7;--panel:#fff;--line:#d9e1ec;--text:#111827;--muted:#667085;--green:#047857;--amber:#b45309;--red:#b91c1c}
     *{box-sizing:border-box}body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;margin:0;background:var(--bg);color:var(--text)}
     header{padding:22px clamp(16px,4vw,36px);background:#111827;color:white;display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
-    h1{font-size:clamp(22px,4vw,34px);margin:0;letter-spacing:0}.sub{color:#cbd5e1;margin-top:4px;font-size:14px}.time{font-size:13px;color:#cbd5e1}
+    .brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:8px}.brand h1{font-size:clamp(22px,4vw,34px);margin:0;letter-spacing:0}.sub{color:#cbd5e1;margin-top:4px;font-size:14px}.time{font-size:13px;color:#cbd5e1}
     main{padding:clamp(14px,3vw,30px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
     .device{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;box-shadow:0 10px 24px rgba(15,23,42,.06)}
     .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.name{font-weight:750;font-size:18px}.type{color:var(--muted);font-size:13px;margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
@@ -99,7 +109,7 @@ HTML = r"""<!doctype html>
   </style>
 </head>
 <body>
-  <header><div><h1>FireFiles Monitor</h1><div class="sub">Windows CLI, Android APK, Ubuntu receiver</div></div><div class="time" id="updated">loading...</div></header>
+  <header><div class="brand"><img class="logo" src="/logo.svg" alt=""><div><h1>FireFiles Monitor</h1><div class="sub">Windows CLI, Android APK, Ubuntu receiver</div></div></div><div class="time" id="updated">loading...</div></header>
   <main id="devices"></main>
   <script>
     const fmtBytes = n => {

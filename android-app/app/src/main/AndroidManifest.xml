@@ -7,6 +7,8 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/ic_firefiles"
+        android:roundIcon="@drawable/ic_firefiles"
         android:label="FireFiles Bridge"
         android:theme="@style/AppTheme">
         <activity
