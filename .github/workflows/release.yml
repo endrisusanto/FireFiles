@@ -49,14 +49,18 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: android-actions/setup-android@v3
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: current
-      - run: gradle assembleDebug
+      - run: ./gradlew assembleDebug
+      - run: |
+          # ponytail: rename APK pakai nama app + versi dari tag
+          PKG_VER="${GITHUB_REF_NAME#v}"
+          PKG_VER="${PKG_VER:-${{ github.event.inputs.version }}}"
+          [[ -n "$PKG_VER" ]] || { echo "ERROR: versi tidak diketahui"; exit 1; }
+          mv app/build/outputs/apk/debug/app-debug.apk \
+             app/build/outputs/apk/debug/firefiles-${PKG_VER}.apk
       - uses: actions/upload-artifact@v4
         with:
           name: firefiles-apk
-          path: android-app/app/build/outputs/apk/debug/*.apk
+          path: android-app/app/build/outputs/apk/debug/firefiles-*.apk
 
   deb:
     runs-on: ubuntu-latest
