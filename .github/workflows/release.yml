@@ -53,7 +53,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.5
+          gradle-version: 8.9
       - run: gradle assembleDebug
       - run: |
           # ponytail: rename APK pakai nama app + versi dari tag
