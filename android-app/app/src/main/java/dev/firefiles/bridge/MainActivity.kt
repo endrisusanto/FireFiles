@@ -145,8 +145,8 @@ class MainActivity : Activity() {
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setPadding(12.dp(), 6.dp(), 12.dp(), 6.dp())
-            updateBadgeState(false)
         }
+        updateBadgeState(false)
         headerLayout.addView(statusBadge)
         rootLayout.addView(headerLayout)
 
@@ -295,7 +295,7 @@ class MainActivity : Activity() {
         statusBadge.text = if (running) "ACTIVE" else "INACTIVE"
         statusBadge.background = GradientDrawable().apply {
             setColor(Color.parseColor(colorHex))
-            cornerRadius = 99f // Pill shape
+            cornerRadius = 99f * resources.displayMetrics.density // Pill shape
         }
     }
 
