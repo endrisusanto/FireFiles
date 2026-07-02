@@ -1,0 +1,97 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  msi:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - run: cargo install cargo-wix
+      - run: cargo wix init
+      - run: cargo wix --no-build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firefiles-msi
+          path: windows-worker/target/wix/*.msi
+
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+      - run: gradle assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firefiles-apk
+          path: android-app/app/build/outputs/apk/release/*.apk
+
+  deb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+        working-directory: windows-worker
+      - run: |
+          mkdir -p pkg/usr/bin pkg/usr/share/firefiles
+          cp windows-worker/target/release/firefiles-worker pkg/usr/bin/
+          cp ubuntu/*.sh pkg/usr/share/firefiles/
+          sudo gem install fpm
+          fpm -s dir -t deb -n firefiles-worker -v "${GITHUB_REF_NAME#v}" -C pkg usr
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firefiles-deb
+          path: "*.deb"
+
+  rpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+        working-directory: windows-worker
+      - run: |
+          mkdir -p pkg/usr/bin pkg/usr/share/firefiles
+          cp windows-worker/target/release/firefiles-worker pkg/usr/bin/
+          cp ubuntu/*.sh pkg/usr/share/firefiles/
+          sudo gem install fpm
+          fpm -s dir -t rpm -n firefiles-worker -v "${GITHUB_REF_NAME#v}" -C pkg usr
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firefiles-rpm
+          path: "*.rpm"
+
+  github-release:
+    needs: [msi, apk, deb, rpm]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
