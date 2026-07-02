@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FireFiles Setup",
+  "version": "0.1.11",
+  "identifier": "id.my.endrisusanto.firefiles-setup",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "FireFiles Setup",
+        "width": 580,
+        "height": 680,
+        "resizable": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "appimage"],
+    "icon": ["../../windows-app/src-tauri/icons/icon.png"]
+  }
+}

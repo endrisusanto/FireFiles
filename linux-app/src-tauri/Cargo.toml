@@ -1,0 +1,13 @@
+[package]
+name = "firefiles-linux"
+version = "0.1.11"
+edition = "2021"
+authors = ["Endri Susanto"]
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2" }
+ureq = "2"

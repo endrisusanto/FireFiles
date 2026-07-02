@@ -5,6 +5,7 @@ import json
 import os
 
 DATA = Path(os.environ.get("DATA_FILE", "/data/devices.json"))
+CONFIG = DATA.parent / "smb-config.json"  # ponytail: satu file terpisah dari devices
 TOKEN = os.environ.get("MONITOR_TOKEN", "")
 STALE_AFTER = int(os.environ.get("STALE_AFTER_SEC", "1800"))
 LOGO = Path(__file__).with_name("assets") / "firefiles-logo.svg"
@@ -22,10 +23,26 @@ def write_devices(devices):
     DATA.write_text(json.dumps(devices, indent=2, sort_keys=True))
 
 
+def read_config():
+    try:
+        return json.loads(CONFIG.read_text())
+    except Exception:
+        return {}
+
+
+def write_config(cfg):
+    CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG.write_text(json.dumps(cfg, indent=2))
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/devices":
             return self.json(devices_with_age())
+        if self.path == "/api/smb-config":
+            if TOKEN and self.headers.get("x-monitor-token") != TOKEN:
+                return self.send_error(401)
+            return self.json(read_config())
         if self.path == "/logo.svg":
             body = LOGO.read_bytes()
             self.send_response(200)
@@ -46,6 +63,17 @@ class Handler(BaseHTTPRequestHandler):
         self.send_error(404)
 
     def do_POST(self):
+        if self.path == "/api/smb-config":
+            if TOKEN and self.headers.get("x-monitor-token") != TOKEN:
+                return self.send_error(401)
+            length = int(self.headers.get("content-length", "0"))
+            try:
+                payload = json.loads(self.rfile.read(length))
+            except Exception:
+                return self.send_error(400, "bad json")
+            payload["registered_at"] = int(time())
+            write_config(payload)
+            return self.json({"ok": True})
         if self.path != "/api/heartbeat":
             return self.send_error(404)
         if TOKEN and self.headers.get("x-monitor-token") != TOKEN:

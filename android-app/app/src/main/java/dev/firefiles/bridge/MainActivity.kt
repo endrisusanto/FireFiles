@@ -10,6 +10,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +27,43 @@ class MainActivity : Activity() {
         val token = input("Monitor token", prefs.getString("token", "change-me") ?: "change-me")
         val status = TextView(this)
         status.text = "Folder: /sdcard/FirmwareBridge"
+
+        // ponytail: derive base URL dari heartbeat URL, fetch SMB config
+        val fetchBtn = Button(this)
+        fetchBtn.text = "Fetch from Server"
+        fetchBtn.setOnClickListener {
+            val baseUrl = monitor.text.toString()
+                .substringBeforeLast("/api/")
+                .trimEnd('/')
+            val configUrl = "$baseUrl/api/smb-config"
+            val tok = token.text.toString()
+            status.text = "Fetching…"
+            Thread {
+                try {
+                    val conn = URL(configUrl).openConnection() as HttpURLConnection
+                    conn.setRequestProperty("x-monitor-token", tok)
+                    conn.connect()
+                    val body = conn.inputStream.bufferedReader().readText()
+                    conn.disconnect()
+                    // parse minimal JSON — cari key:"value"
+                    fun get(key: String) = Regex(""""$key"\s*:\s*"([^"]*)"""")
+                        .find(body)?.groupValues?.get(1) ?: ""
+                    val h = get("host"); val sh = get("share")
+                    val u = get("user"); val p = get("pass"); val f = get("folder")
+                    runOnUiThread {
+                        if (h.isNotBlank()) {
+                            host.setText(h); share.setText(sh)
+                            user.setText(u); pass.setText(p); folder.setText(f)
+                            status.text = "✓ Config dari server terisi!"
+                        } else {
+                            status.text = "Server belum punya config (setup Linux app dulu)"
+                        }
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread { status.text = "Fetch gagal: ${e.message}" }
+                }
+            }.start()
+        }
 
         val save = Button(this)
         save.text = "Save + Start"
@@ -52,7 +91,7 @@ class MainActivity : Activity() {
 
         val layout = LinearLayout(this)
         layout.orientation = LinearLayout.VERTICAL
-        listOf(host, share, user, pass, folder, monitor, token, access, save, status).forEach(layout::addView)
+        listOf(host, share, user, pass, folder, monitor, token, fetchBtn, access, save, status).forEach(layout::addView)
         setContentView(layout)
     }
 

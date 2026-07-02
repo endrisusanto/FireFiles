@@ -106,8 +106,33 @@ jobs:
           name: firefiles-rpm
           path: "*.rpm"
 
+  linux-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: |
+          sudo apt update
+          sudo apt install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: npm install
+        working-directory: linux-app
+      - run: npm run build
+        working-directory: linux-app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firefiles-linux-appimage
+          path: linux-app/src-tauri/target/release/bundle/appimage/*.AppImage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firefiles-linux-deb
+          path: linux-app/src-tauri/target/release/bundle/deb/*.deb
+
   github-release:
-    needs: [msi, apk, deb, rpm]
+    needs: [msi, apk, deb, rpm, linux-app]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
