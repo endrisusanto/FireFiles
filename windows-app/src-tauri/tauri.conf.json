@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FireFiles",
+  "version": "0.1.5",
+  "identifier": "id.my.endrisusanto.firefiles",
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "FireFiles",
+        "width": 900,
+        "height": 660
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi"],
+    "icon": ["icons/icon.png"],
+    "resources": ["binaries/firefiles-worker.exe"]
+  }
+}

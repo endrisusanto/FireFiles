@@ -12,20 +12,25 @@ permissions:
 jobs:
   msi:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: windows-worker
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - run: cargo build --release
-      - run: cargo install cargo-wix
-      - run: cargo wix init
-      - run: cargo wix --no-build
+        working-directory: windows-worker
+      - run: |
+          New-Item -ItemType Directory -Force windows-app/src-tauri/binaries
+          Copy-Item windows-worker/target/release/firefiles-worker.exe windows-app/src-tauri/binaries/firefiles-worker.exe
+      - run: npm install
+        working-directory: windows-app
+      - run: npm run build
+        working-directory: windows-app
       - uses: actions/upload-artifact@v4
         with:
           name: firefiles-msi
-          path: windows-worker/target/wix/*.msi
+          path: windows-app/src-tauri/target/release/bundle/msi/*.msi
 
   apk:
     runs-on: ubuntu-latest

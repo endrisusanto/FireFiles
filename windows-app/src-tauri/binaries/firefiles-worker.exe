@@ -1,0 +1,1 @@
+placeholder; GitHub Actions overwrites this with windows-worker/target/release/firefiles-worker.exe before building MSI.

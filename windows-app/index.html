@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FireFiles</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <img src="/src/firefiles-logo.svg" alt="">
+      <div>
+        <h1>FireFiles</h1>
+        <p>Windows to Android firmware bridge</p>
+      </div>
+      <span id="state">stopped</span>
+    </header>
+
+    <section class="grid">
+      <label>Source folder<input id="source" placeholder="D:\Downloads"></label>
+      <label>Backup folder<input id="backup" placeholder="D:\FirmwareBackup"></label>
+      <label>ADB path<input id="adb" value="adb"></label>
+      <label>Android path<input id="androidDir" value="/sdcard/FirmwareBridge"></label>
+      <label>Device serial<input id="serial" placeholder="optional"></label>
+      <label>Stable seconds<input id="stableSecs" type="number" min="2" value="20"></label>
+    </section>
+
+    <div class="actions">
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+    </div>
+
+    <pre id="log">Close hides this app to tray. Use tray menu to show or quit.</pre>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

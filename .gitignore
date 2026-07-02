@@ -3,5 +3,8 @@ target/
 build/
 android-app/.gradle/
 android-app/app/build/
+windows-app/dist/
+windows-app/node_modules/
+windows-app/src-tauri/target/
 __pycache__/
 *.pyc

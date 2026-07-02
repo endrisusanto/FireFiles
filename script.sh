@@ -34,6 +34,8 @@ git config user.email >/dev/null 2>&1 || git config user.email "actions@users.no
 git remote get-url origin >/dev/null 2>&1 && git remote set-url origin "$REMOTE_URL" || git remote add origin "$REMOTE_URL"
 
 sed -i -E "s/^version = \"[^\"]+\"/version = \"$VERSION\"/" windows-worker/Cargo.toml
+sed -i -E "s/^version = \"[^\"]+\"/version = \"$VERSION\"/" windows-app/src-tauri/Cargo.toml
+sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" windows-app/package.json windows-app/src-tauri/tauri.conf.json
 sed -i -E "s/versionName = \"[^\"]+\"/versionName = \"$VERSION\"/" android-app/app/build.gradle.kts
 sed -i -E "s/versionCode = [0-9]+/versionCode = $VERSION_CODE/" android-app/app/build.gradle.kts
 

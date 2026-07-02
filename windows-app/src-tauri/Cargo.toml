@@ -1,0 +1,13 @@
+[package]
+name = "firefiles-app"
+version = "0.1.5"
+edition = "2021"
+authors = ["Endri Susanto"]
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2", features = ["tray-icon"] }

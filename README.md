@@ -137,6 +137,21 @@ Install Android Platform Tools, aktifkan USB Debugging, lalu cek device:
 adb devices
 ```
 
+Cara paling mudah: install MSI dari GitHub Release lalu buka `FireFiles`.
+
+Di GUI:
+
+```text
+Source folder: D:\Downloads
+Backup folder: D:\FirmwareBackup
+ADB path: C:\Android\platform-tools\adb.exe
+Android path: /sdcard/FirmwareBridge
+Device serial: isi dari adb devices, boleh kosong jika hanya satu device
+Stable seconds: 20
+```
+
+Klik `Start`. Jika window ditutup, FireFiles tidak exit; app disembunyikan ke system tray. Dari tray menu, pilih `Show` untuk membuka lagi atau `Quit` untuk keluar.
+
 Kirim heartbeat Windows:
 
 ```powershell
@@ -144,7 +159,7 @@ $env:MONITOR_TOKEN='ganti-token-ini'
 powershell -ExecutionPolicy Bypass -File .\monitor-agents\windows-heartbeat.ps1
 ```
 
-Jalankan worker:
+Alternatif CLI tanpa GUI:
 
 ```powershell
 .\firefiles-worker.exe --source D:\Downloads --backup D:\FirmwareBackup --adb C:\Android\platform-tools\adb.exe --serial DEVICE_SERIAL
@@ -199,7 +214,7 @@ Pakai versi manual:
 Release menghasilkan:
 
 - APK installable (`app-debug.apk`)
-- MSI
+- MSI Windows GUI Tauri
 - DEB
 - RPM
 

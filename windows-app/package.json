@@ -1,0 +1,16 @@
+{
+  "name": "firefiles-windows-app",
+  "private": true,
+  "version": "0.1.5",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "node scripts/build.js && tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
