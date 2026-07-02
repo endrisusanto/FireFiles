@@ -2,6 +2,10 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag versi (tanpa v, misal: 0.1.9) — wajib diisi jika bukan push tag"
+        required: false
   push:
     tags:
       - "v*.*.*"
@@ -22,7 +26,8 @@ jobs:
         working-directory: windows-worker
       - run: |
           New-Item -ItemType Directory -Force windows-app/src-tauri/binaries
-          Copy-Item windows-worker/target/release/firefiles-worker.exe windows-app/src-tauri/binaries/firefiles-worker.exe
+          # ponytail: Tauri v2 sidecar wajib pakai target triple di nama file
+          Copy-Item windows-worker/target/release/firefiles-worker.exe windows-app/src-tauri/binaries/firefiles-worker-x86_64-pc-windows-msvc.exe
       - run: npm install
         working-directory: windows-app
       - run: npm run build
@@ -61,11 +66,15 @@ jobs:
       - run: cargo build --release
         working-directory: windows-worker
       - run: |
+          # ponytail: workflow_dispatch tanpa tag → GITHUB_REF_NAME kosong, pakai input
+          PKG_VER="${GITHUB_REF_NAME#v}"
+          PKG_VER="${PKG_VER:-${{ github.event.inputs.version }}}"
+          [[ -n "$PKG_VER" ]] || { echo "ERROR: versi tidak diketahui"; exit 1; }
           mkdir -p pkg/usr/bin pkg/usr/share/firefiles
           cp windows-worker/target/release/firefiles-worker pkg/usr/bin/
           cp ubuntu/*.sh pkg/usr/share/firefiles/
           sudo gem install fpm
-          fpm -s dir -t deb -n firefiles-worker -v "${GITHUB_REF_NAME#v}" -C pkg usr
+          fpm -s dir -t deb -n firefiles-worker -v "$PKG_VER" -C pkg usr
       - uses: actions/upload-artifact@v4
         with:
           name: firefiles-deb
@@ -79,11 +88,15 @@ jobs:
       - run: cargo build --release
         working-directory: windows-worker
       - run: |
+          # ponytail: sama seperti deb — aman untuk workflow_dispatch
+          PKG_VER="${GITHUB_REF_NAME#v}"
+          PKG_VER="${PKG_VER:-${{ github.event.inputs.version }}}"
+          [[ -n "$PKG_VER" ]] || { echo "ERROR: versi tidak diketahui"; exit 1; }
           mkdir -p pkg/usr/bin pkg/usr/share/firefiles
           cp windows-worker/target/release/firefiles-worker pkg/usr/bin/
           cp ubuntu/*.sh pkg/usr/share/firefiles/
           sudo gem install fpm
-          fpm -s dir -t rpm -n firefiles-worker -v "${GITHUB_REF_NAME#v}" -C pkg usr
+          fpm -s dir -t rpm -n firefiles-worker -v "$PKG_VER" -C pkg usr
       - uses: actions/upload-artifact@v4
         with:
           name: firefiles-rpm

@@ -18,7 +18,8 @@ TAG="v$VERSION"
 IFS=. read -r MAJOR MINOR PATCH <<<"$VERSION"
 VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
 
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 && [[ -d .git ]]; then
+# ponytail: order matters — check .git exists first, then validate it
+if [[ -d .git ]] && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   rmdir .git 2>/dev/null || {
     echo ".git exists but is not a valid repo; fix it manually"
     exit 1
@@ -35,7 +36,9 @@ git remote get-url origin >/dev/null 2>&1 && git remote set-url origin "$REMOTE_
 
 sed -i -E "s/^version = \"[^\"]+\"/version = \"$VERSION\"/" windows-worker/Cargo.toml
 sed -i -E "s/^version = \"[^\"]+\"/version = \"$VERSION\"/" windows-app/src-tauri/Cargo.toml
-sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" windows-app/package.json windows-app/src-tauri/tauri.conf.json
+# ponytail: anchor ^ agar hanya baris "version" di level atas yang diubah
+sed -i -E "s/^(  \"version\"): \"[^\"]+\"/\1: \"$VERSION\"/" windows-app/package.json
+sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" windows-app/src-tauri/tauri.conf.json
 sed -i -E "s/versionName = \"[^\"]+\"/versionName = \"$VERSION\"/" android-app/app/build.gradle.kts
 sed -i -E "s/versionCode = [0-9]+/versionCode = $VERSION_CODE/" android-app/app/build.gradle.kts
 
