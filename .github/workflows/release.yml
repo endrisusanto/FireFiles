@@ -28,6 +28,7 @@ jobs:
           New-Item -ItemType Directory -Force windows-app/src-tauri/binaries
           # ponytail: Tauri v2 sidecar wajib pakai target triple di nama file
           Copy-Item windows-worker/target/release/firefiles-worker.exe windows-app/src-tauri/binaries/firefiles-worker-x86_64-pc-windows-msvc.exe
+          New-Item -ItemType File -Path windows-app/src-tauri/binaries/firefiles-worker-x86_64-unknown-linux-gnu -Force
       - run: npm install
         working-directory: windows-app
       - run: npm run build
@@ -49,7 +50,11 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: android-actions/setup-android@v3
-      - run: ./gradlew assembleDebug
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.5
+      - run: gradle assembleDebug
       - run: |
           # ponytail: rename APK pakai nama app + versi dari tag
           PKG_VER="${GITHUB_REF_NAME#v}"
@@ -107,6 +112,7 @@ jobs:
       - run: |
           mkdir -p windows-app/src-tauri/binaries
           cp windows-worker/target/release/firefiles-worker windows-app/src-tauri/binaries/firefiles-worker-x86_64-unknown-linux-gnu
+          touch windows-app/src-tauri/binaries/firefiles-worker-x86_64-pc-windows-msvc.exe
       - run: npm install
         working-directory: windows-app
       - run: npm run build

@@ -126,11 +126,23 @@ fn detect_ip() -> String {
 
 #[tauri::command]
 fn generate_password() -> String {
-    let mut buf = [0u8; 12];
-    fs::File::open("/dev/urandom")
-        .ok()
-        .and_then(|mut f| f.read_exact(&mut buf).ok());
-    buf.iter().map(|b| format!("{b:02x}")).collect()
+    #[cfg(target_os = "linux")]
+    {
+        let mut buf = [0u8; 12];
+        if let Ok(mut f) = fs::File::open("/dev/urandom") {
+            let _ = f.read_exact(&mut buf);
+        }
+        buf.iter().map(|b| format!("{b:02x}")).collect()
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        use std::time::SystemTime;
+        let nanos = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(123456789);
+        format!("{:x}", nanos)
+    }
 }
 
 #[tauri::command]
