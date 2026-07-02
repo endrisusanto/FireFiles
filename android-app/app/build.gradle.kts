@@ -11,8 +11,8 @@ android {
         applicationId = "dev.firefiles.bridge"
         minSdk = 26
         targetSdk = 35
-        versionCode = 109
-        versionName = "0.1.9"
+        versionCode = 110
+        versionName = "0.1.10"
     }
 
     compileOptions {
