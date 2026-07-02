@@ -3,3 +3,5 @@ target/
 build/
 android-app/.gradle/
 android-app/app/build/
+__pycache__/
+*.pyc

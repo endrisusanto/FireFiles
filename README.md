@@ -90,3 +90,45 @@ Status is written to:
 - Samba port is TCP 445.
 - Android and Ubuntu must be on the same network for SMB.
 - If Android 11+ blocks `/sdcard/FirmwareBridge`, grant all-files access to the sideloaded app or switch the worker destination to the app external files directory.
+
+## Monitor dashboard
+
+Run the dashboard on the Ubuntu box:
+
+```bash
+MONITOR_TOKEN='change-this' docker compose up -d monitor
+```
+
+Open:
+
+```text
+https://files.endrisusanto.my.id/
+```
+
+Cloudflare Tunnel can point to:
+
+```text
+http://localhost:8080
+```
+
+Ubuntu heartbeat:
+
+```bash
+MONITOR_TOKEN='change-this' ./monitor-agents/ubuntu-heartbeat.sh
+```
+
+Windows heartbeat:
+
+```powershell
+$env:MONITOR_TOKEN='change-this'
+powershell -ExecutionPolicy Bypass -File .\monitor-agents\windows-heartbeat.ps1
+```
+
+Run those from Task Scheduler or cron every minute.
+
+Android heartbeat:
+
+- Open the APK.
+- Set `Monitor URL` to `https://files.endrisusanto.my.id/api/heartbeat`.
+- Set the same token.
+- Tap `Save + Start`.

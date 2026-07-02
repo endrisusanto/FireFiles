@@ -4,9 +4,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.app.ActivityManager
 import android.content.Intent
 import android.os.Environment
 import android.os.IBinder
+import android.os.StatFs
 import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.msfscc.FileAttributes
 import com.hierynomus.mssmb2.SMB2CreateDisposition
@@ -16,6 +18,8 @@ import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.share.DiskShare
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.EnumSet
 import kotlin.concurrent.thread
 
@@ -29,6 +33,7 @@ class UploadService : Service() {
         root.mkdirs()
         statusDir.mkdirs()
         thread(name = "firefiles-uploader") { loop() }
+        thread(name = "firefiles-heartbeat") { heartbeatLoop() }
         return START_STICKY
     }
 
@@ -130,6 +135,36 @@ class UploadService : Service() {
                 append("}")
             }
         )
+    }
+
+    private fun heartbeatLoop() {
+        while (running) {
+            try {
+                postHeartbeat()
+            } catch (_: Exception) {
+            }
+            Thread.sleep(30000)
+        }
+    }
+
+    private fun postHeartbeat() {
+        val prefs = getSharedPreferences("smb", MODE_PRIVATE)
+        val monitor = prefs.getString("monitor", "")!!.ifBlank { return }
+        val token = prefs.getString("token", "change-me")!!
+        val mem = ActivityManager.MemoryInfo()
+        getSystemService(ActivityManager::class.java).getMemoryInfo(mem)
+        val storage = StatFs(Environment.getExternalStorageDirectory().path)
+        val free = storage.availableBytes
+        val total = storage.totalBytes
+        val pending = root.listFiles()?.count { it.isFile && it.name.endsWith(".tar.md5") } ?: 0
+        val body = """{"id":"android","name":"${android.os.Build.MODEL}","kind":"android-apk","status":"running","cpu_percent":0,"ram_percent":${100 * (mem.totalMem - mem.availMem) / mem.totalMem},"ram_free_bytes":${mem.availMem},"storage_percent":${100 * (total - free) / total},"storage_free_bytes":$free,"detail":"pending $pending"}"""
+        val conn = URL(monitor).openConnection() as HttpURLConnection
+        conn.requestMethod = "POST"
+        conn.setRequestProperty("content-type", "application/json")
+        conn.setRequestProperty("x-monitor-token", token)
+        conn.doOutput = true
+        conn.outputStream.use { it.write(body.toByteArray()) }
+        conn.inputStream.close()
     }
 
     private fun notification(text: String): Notification {

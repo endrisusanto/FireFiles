@@ -21,6 +21,8 @@ class MainActivity : Activity() {
         val user = input("Username", prefs.getString("user", "firmware") ?: "firmware")
         val pass = input("Password", prefs.getString("pass", "") ?: "")
         val folder = input("Remote folder", prefs.getString("folder", "") ?: "")
+        val monitor = input("Monitor URL", prefs.getString("monitor", "https://files.endrisusanto.my.id/api/heartbeat") ?: "https://files.endrisusanto.my.id/api/heartbeat")
+        val token = input("Monitor token", prefs.getString("token", "change-me") ?: "change-me")
         val status = TextView(this)
         status.text = "Folder: /sdcard/FirmwareBridge"
 
@@ -33,6 +35,8 @@ class MainActivity : Activity() {
                 .putString("user", user.text.toString())
                 .putString("pass", pass.text.toString())
                 .putString("folder", folder.text.toString().trim('/'))
+                .putString("monitor", monitor.text.toString())
+                .putString("token", token.text.toString())
                 .apply()
             startForegroundService(Intent(this, UploadService::class.java))
             status.text = "Uploader running"
@@ -48,7 +52,7 @@ class MainActivity : Activity() {
 
         val layout = LinearLayout(this)
         layout.orientation = LinearLayout.VERTICAL
-        listOf(host, share, user, pass, folder, access, save, status).forEach(layout::addView)
+        listOf(host, share, user, pass, folder, monitor, token, access, save, status).forEach(layout::addView)
         setContentView(layout)
     }
 
