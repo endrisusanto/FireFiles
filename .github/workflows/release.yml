@@ -67,33 +67,6 @@ jobs:
           name: firefiles-apk
           path: android-app/app/build/outputs/apk/debug/firefiles-*.apk
 
-  deb-rpm-server:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --release
-        working-directory: windows-worker
-      - run: |
-          # ponytail: build deb/rpm server worker (CLI) saja
-          PKG_VER="${GITHUB_REF_NAME#v}"
-          PKG_VER="${PKG_VER:-${{ github.event.inputs.version }}}"
-          [[ -n "$PKG_VER" ]] || { echo "ERROR: versi tidak diketahui"; exit 1; }
-          mkdir -p pkg/usr/bin pkg/usr/share/firefiles
-          cp windows-worker/target/release/firefiles-worker pkg/usr/bin/
-          cp ubuntu/*.sh pkg/usr/share/firefiles/
-          sudo gem install fpm
-          fpm -s dir -t deb -n firefiles-worker -v "$PKG_VER" -C pkg usr
-          fpm -s dir -t rpm -n firefiles-worker -v "$PKG_VER" -C pkg usr
-      - uses: actions/upload-artifact@v4
-        with:
-          name: firefiles-worker-deb
-          path: "*.deb"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: firefiles-worker-rpm
-          path: "*.rpm"
-
   desktop-linux:
     runs-on: ubuntu-latest
     steps:
@@ -127,7 +100,7 @@ jobs:
           path: windows-app/src-tauri/target/release/bundle/deb/*.deb
 
   github-release:
-    needs: [msi, apk, deb-rpm-server, desktop-linux]
+    needs: [msi, apk, desktop-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
