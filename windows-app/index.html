@@ -3,73 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FireFiles</title>
+  <title>FireFiles Setup Wizard</title>
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
   <main>
     <header>
-      <img src="/src/firefiles-logo.svg" alt="">
+      <img src="/src/firefiles-logo.svg" alt="FireFiles">
       <div>
         <h1>FireFiles</h1>
-        <p>Windows & Linux firmware bridge</p>
+        <p>Windows & Linux Firmware Bridge</p>
       </div>
       <span id="state">stopped</span>
     </header>
 
-    <!-- Tab navigation -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="app-tab">App Control</button>
-      <button class="tab-btn" data-tab="setup-tab">Auto Setup / Sync</button>
-    </div>
-
-    <!-- Main App Tab -->
-    <div id="app-tab" class="tab-content active">
-      <section class="grid">
-        <label>Source folder
-          <div class="input-group">
-            <input id="source" placeholder="D:\Downloads">
-            <button class="pick-btn" data-target="source">📁 Pick</button>
-          </div>
-        </label>
-        <label>Backup folder
-          <div class="input-group">
-            <input id="backup" placeholder="D:\FirmwareBackup">
-            <button class="pick-btn" data-target="backup">📁 Pick</button>
-          </div>
-        </label>
-        <label>ADB path<input id="adb" value="adb"></label>
-        <label>Android path<input id="androidDir" value="/sdcard/FirmwareBridge"></label>
-        <label>Device serial<input id="serial" placeholder="optional"></label>
-        <label>Stable seconds<input id="stableSecs" type="number" min="2" value="20"></label>
-      </section>
-
-      <div class="actions">
-        <button id="start">Start</button>
-        <button id="stop">Stop</button>
+    <!-- Visual Stepper Progress Bar -->
+    <div class="stepper">
+      <div class="step-indicator active" id="ind-step1" data-step="1">
+        <span class="step-num">1</span>
+        <span class="step-label">PC Setup</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-indicator" id="ind-step2" data-step="2">
+        <span class="step-num">2</span>
+        <span class="step-label">Link Phone</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-indicator" id="ind-step3" data-step="3">
+        <span class="step-num">3</span>
+        <span class="step-label">Sync Control</span>
       </div>
     </div>
 
-    <!-- Auto Setup Tab -->
-    <div id="setup-tab" class="tab-content">
-      <section class="grid">
-        <label class="linux-only">Samba Folder Path
-          <div class="input-group">
-            <input id="shareDir" placeholder="/home/firmware/inbox">
-            <button class="pick-btn" data-target="shareDir">📁 Pick</button>
-          </div>
-        </label>
-        <label class="linux-only">Samba Share Name<input id="shareName" value="FirmwareInbox"></label>
-        <label class="linux-only">Samba Username<input id="smbUser" value="firmware"></label>
-        <label class="linux-only">Samba Password<input id="smbPass" placeholder="Auto-generated / Manual"></label>
-        <label>Monitor URL<input id="monitorUrl" value="https://files.endrisusanto.my.id"></label>
-        <label>Monitor Token<input id="monitorToken" placeholder="change-me"></label>
-      </section>
+    <!-- Wizard Steps Wrapper -->
+    <div class="wizard-container">
+      
+      <!-- STEP 1: PC Share Configuration -->
+      <div id="wizard-step-1" class="wizard-step active">
+        <div class="step-header">
+          <h2>Step 1: Set up folder sharing on your PC</h2>
+          <p>We need to expose a local folder so the Android app can upload firmware files into it.</p>
+        </div>
 
-      <div class="actions">
-        <button id="setupSambaBtn" class="linux-only">⚡ Setup Samba & Register</button>
-        <button id="fetchConfigBtn">📥 Fetch Config from Server</button>
+        <div class="linux-only card">
+          <h3>⚡ Ubuntu / Linux Quick Share Setup</h3>
+          <p class="card-desc">This will automatically configure Samba on your Linux machine and register it to the coordination server.</p>
+          <div class="grid">
+            <label>Local Shared Folder Path
+              <div class="input-group">
+                <input id="shareDir" placeholder="/home/firmware/inbox">
+                <button class="pick-btn" data-target="shareDir">📁 Pick</button>
+              </div>
+            </label>
+            <label>Samba Share Name<input id="shareName" value="FirmwareInbox"></label>
+            <label>Samba Username<input id="smbUser" value="firmware"></label>
+            <label>Samba Password<input id="smbPass" placeholder="Auto-generated / Manual"></label>
+          </div>
+          <button id="setupSambaBtn" class="primary-btn">⚡ Configure Samba & Register</button>
+        </div>
+
+        <div class="windows-only card">
+          <h3>📁 Windows folder sharing guidelines</h3>
+          <p class="card-desc">On Windows, you can share a folder natively via File Explorer:</p>
+          <ol class="guide-list">
+            <li>Right click your target folder → <strong>Properties</strong>.</li>
+            <li>Go to the <strong>Sharing</strong> tab → click <strong>Share...</strong>.</li>
+            <li>Select your user account, grant Read/Write access, and click Share.</li>
+            <li>Note down your PC's LAN IP address and shared folder credentials to enter in Step 2.</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h3>🌐 Synchronization Coordination Server</h3>
+          <p class="card-desc">Enter the credentials of your coordination hub to pair your devices automatically.</p>
+          <div class="grid">
+            <label>Monitor URL<input id="monitorUrl" value="https://files.endrisusanto.my.id"></label>
+            <label>Monitor Token<input id="monitorToken" placeholder="change-me"></label>
+          </div>
+        </div>
       </div>
+
+      <!-- STEP 2: Link Phone -->
+      <div id="wizard-step-2" class="wizard-step">
+        <div class="step-header">
+          <h2>Step 2: Sync and Link your Android device</h2>
+          <p>Pair your Android phone with the PC configurations using the cloud bridge.</p>
+        </div>
+
+        <div class="card sync-card">
+          <div class="sync-instructions">
+            <h3>📲 How to Sync:</h3>
+            <ol class="guide-list">
+              <li>Open the <strong>FireFiles Bridge</strong> app on your Android device.</li>
+              <li>Ensure you have set the matching <strong>Monitor URL</strong> and <strong>Token</strong>.</li>
+              <li>Press the <strong>Fetch Config from Server</strong> button in the Android App.</li>
+              <li>All Samba configuration fields on the phone will auto-fill themselves!</li>
+            </ol>
+          </div>
+          <div class="sync-actions">
+            <button id="fetchConfigBtn" class="secondary-btn">📥 Fetch local PC config cache</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Sync Control -->
+      <div id="wizard-step-3" class="wizard-step">
+        <div class="step-header">
+          <h2>Step 3: Specify local folders and start syncing</h2>
+          <p>Run the synchronization daemon to copy files from the shared inbox to your backup directory.</p>
+        </div>
+
+        <div class="card">
+          <div class="grid">
+            <label>Source Folder (Shared Inbox)
+              <div class="input-group">
+                <input id="source" placeholder="E.g. D:\Downloads or /home/firmware/inbox">
+                <button class="pick-btn" data-target="source">📁 Pick</button>
+              </div>
+            </label>
+            <label>Backup Folder (Local Archive)
+              <div class="input-group">
+                <input id="backup" placeholder="E.g. D:\FirmwareBackup">
+                <button class="pick-btn" data-target="backup">📁 Pick</button>
+              </div>
+            </label>
+            <label>ADB Path<input id="adb" value="adb"></label>
+            <label>Android Remote Folder Path<input id="androidDir" value="/sdcard/FirmwareBridge"></label>
+            <label>Target Device Serial (optional)<input id="serial" placeholder="E.g. 98895445..."></label>
+            <label>Stable seconds delay<input id="stableSecs" type="number" min="2" value="20"></label>
+          </div>
+        </div>
+
+        <div class="actions center">
+          <button id="start" class="start-btn">▶ Start Daemon</button>
+          <button id="stop" class="stop-btn">■ Stop Daemon</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Wizard Navigation -->
+    <div class="wizard-nav">
+      <button id="prevBtn" class="nav-btn secondary-btn" disabled>← Previous</button>
+      <button id="nextBtn" class="nav-btn primary-btn">Next →</button>
     </div>
 
     <pre id="log">Close hides this app to tray. Use tray menu to show or quit.</pre>

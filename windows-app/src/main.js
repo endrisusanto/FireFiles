@@ -2,22 +2,76 @@ import { invoke } from "@tauri-apps/api/core";
 
 const $ = id => document.getElementById(id);
 
-// ponytail: check platform via userAgent to show/hide linux-only features
+// Check platform via userAgent to show/hide linux-only features
 const isLinux = navigator.userAgent.toLowerCase().includes("linux");
 if (!isLinux) {
   document.querySelectorAll(".linux-only").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".windows-only").forEach(el => el.style.display = "block");
+} else {
+  document.querySelectorAll(".linux-only").forEach(el => el.style.display = "block");
+  document.querySelectorAll(".windows-only").forEach(el => el.style.display = "none");
 }
 
-// Tab Switching
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-    btn.classList.add("active");
-    $(btn.dataset.tab).classList.add("active");
+// Wizard Step Navigation Logic
+let currentStep = 1;
+const maxSteps = 3;
+
+function updateWizardUI() {
+  // Toggle visible step panels
+  for (let i = 1; i <= maxSteps; i++) {
+    const stepPanel = $(`wizard-step-${i}`);
+    const stepInd = $(`ind-step${i}`);
+    
+    if (i === currentStep) {
+      stepPanel.classList.add("active");
+      stepInd.classList.add("active");
+      stepInd.classList.remove("completed");
+    } else {
+      stepPanel.classList.remove("active");
+      if (i < currentStep) {
+        stepInd.classList.add("completed");
+        stepInd.classList.remove("active");
+      } else {
+        stepInd.classList.remove("active", "completed");
+      }
+    }
+  }
+
+  // Update navigation buttons
+  $("prevBtn").disabled = currentStep === 1;
+  
+  if (currentStep === maxSteps) {
+    $("nextBtn").textContent = "Finish ✓";
+    $("nextBtn").style.display = "none"; // Hide next on the final control step to focus on start/stop
+  } else {
+    $("nextBtn").textContent = "Next →";
+    $("nextBtn").style.display = "inline-flex";
+  }
+}
+
+$("nextBtn").onclick = () => {
+  if (currentStep < maxSteps) {
+    currentStep++;
+    updateWizardUI();
+  }
+};
+
+$("prevBtn").onclick = () => {
+  if (currentStep > 1) {
+    currentStep--;
+    updateWizardUI();
+  }
+};
+
+// Make step indicators clickable to jump between steps
+document.querySelectorAll(".step-indicator").forEach(el => {
+  el.onclick = () => {
+    currentStep = Number(el.dataset.step);
+    updateWizardUI();
   };
 });
 
+// Sync Worker payload
 function payload() {
   return {
     source: $("source").value,
@@ -57,26 +111,38 @@ $("fetchConfigBtn").onclick = async () => {
     $("log").textContent = "Error: Monitor URL cannot be empty.";
     return;
   }
-  $("log").textContent = "Fetching configuration...";
+  $("log").textContent = "Fetching configurations...";
   try {
     const raw = await invoke("fetch_smb_config", { url, token });
     const cfg = JSON.parse(raw);
     if (cfg.host) {
-      // Auto fill atau tampilkan hasil
-      $("log").textContent = `Configuration fetched successfully:\n${JSON.stringify(cfg, null, 2)}`;
-      // Pada client, kita set target path atau info
+      $("log").textContent = `Configuration synced successfully:\n${JSON.stringify(cfg, null, 2)}`;
+      
+      // Auto-fill target folder & input directories
       if (cfg.folder) {
         $("androidDir").value = `/sdcard/FirmwareBridge/${cfg.folder}`;
       }
+      
+      // On Windows/Linux, if Samba path matches, we auto fill source directory
+      if (cfg.share && cfg.host) {
+        if (!isLinux) {
+          $("source").value = `\\\\${cfg.host}\\${cfg.share}`;
+        } else {
+          // If we are on Linux setup, we can use local mounting path or configured share dir
+          if ($("shareDir").value) {
+            $("source").value = $("shareDir").value;
+          }
+        }
+      }
     } else {
-      $("log").textContent = "Server returned empty config. Setup receiver first.";
+      $("log").textContent = "Server returned empty configurations.";
     }
   } catch (e) {
     $("log").textContent = `Fetch failed: ${e}`;
   }
 };
 
-// Linux Setup Samba and Register
+// Linux Setup Samba and Register Flow
 if (isLinux) {
   // Generate random pass on start
   invoke("generate_password").then(pass => {
@@ -100,7 +166,7 @@ if (isLinux) {
       return;
     }
 
-    $("log").textContent = "Setting up Samba... check prompt for password.";
+    $("log").textContent = "Setting up Samba... please type password when requested in prompt.";
     try {
       const msg = await invoke("setup_samba", { shareDir, shareName, user: smbUser, pass: smbPass });
       $("log").textContent = msg;
@@ -134,6 +200,7 @@ document.querySelectorAll(".pick-btn").forEach(btn => {
   };
 });
 
+// Initial boot configurations
+updateWizardUI();
 refresh();
 setInterval(refresh, 3000);
-
