@@ -241,6 +241,30 @@ pre {
   overflow-y: auto;
 }
 
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.input-group input {
+  flex: 1;
+}
+
+.pick-btn {
+  background: #334155;
+  color: #FFFFFF;
+  border: 1px solid var(--border);
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.pick-btn:hover {
+  background: #475569;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }

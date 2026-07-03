@@ -26,8 +26,18 @@
     <!-- Main App Tab -->
     <div id="app-tab" class="tab-content active">
       <section class="grid">
-        <label>Source folder<input id="source" placeholder="D:\Downloads"></label>
-        <label>Backup folder<input id="backup" placeholder="D:\FirmwareBackup"></label>
+        <label>Source folder
+          <div class="input-group">
+            <input id="source" placeholder="D:\Downloads">
+            <button class="pick-btn" data-target="source">📁 Pick</button>
+          </div>
+        </label>
+        <label>Backup folder
+          <div class="input-group">
+            <input id="backup" placeholder="D:\FirmwareBackup">
+            <button class="pick-btn" data-target="backup">📁 Pick</button>
+          </div>
+        </label>
         <label>ADB path<input id="adb" value="adb"></label>
         <label>Android path<input id="androidDir" value="/sdcard/FirmwareBridge"></label>
         <label>Device serial<input id="serial" placeholder="optional"></label>
@@ -43,7 +53,12 @@
     <!-- Auto Setup Tab -->
     <div id="setup-tab" class="tab-content">
       <section class="grid">
-        <label class="linux-only">Samba Folder Path<input id="shareDir" placeholder="/home/firmware/inbox"></label>
+        <label class="linux-only">Samba Folder Path
+          <div class="input-group">
+            <input id="shareDir" placeholder="/home/firmware/inbox">
+            <button class="pick-btn" data-target="shareDir">📁 Pick</button>
+          </div>
+        </label>
         <label class="linux-only">Samba Share Name<input id="shareName" value="FirmwareInbox"></label>
         <label class="linux-only">Samba Username<input id="smbUser" value="firmware"></label>
         <label class="linux-only">Samba Password<input id="smbPass" placeholder="Auto-generated / Manual"></label>

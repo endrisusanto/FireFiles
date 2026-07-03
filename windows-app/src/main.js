@@ -119,6 +119,21 @@ if (isLinux) {
   };
 }
 
+// Folder Picker click handler
+document.querySelectorAll(".pick-btn").forEach(btn => {
+  btn.onclick = async () => {
+    const targetId = btn.dataset.target;
+    try {
+      const selected = await invoke("pick_folder");
+      if (selected) {
+        $(targetId).value = selected;
+      }
+    } catch (e) {
+      $("log").textContent = `Failed to pick folder: ${e}`;
+    }
+  };
+});
+
 refresh();
 setInterval(refresh, 3000);
 

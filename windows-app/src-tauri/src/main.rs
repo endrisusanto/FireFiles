@@ -224,6 +224,13 @@ fn fetch_smb_config(url: String, token: String) -> Result<String, String> {
     Ok(resp)
 }
 
+#[tauri::command]
+fn pick_folder() -> Option<String> {
+    rfd::FileDialog::new()
+        .pick_folder()
+        .map(|p| p.to_string_lossy().into_owned())
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Worker(Mutex::new(None)))
@@ -261,7 +268,8 @@ fn main() {
             generate_password,
             setup_samba,
             register_config,
-            fetch_smb_config
+            fetch_smb_config,
+            pick_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running FireFiles");
