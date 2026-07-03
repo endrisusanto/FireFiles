@@ -227,7 +227,7 @@ fn fetch_smb_config(url: String, token: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn pick_folder() -> Option<String> {
+async fn pick_folder() -> Option<String> {
     rfd::FileDialog::new()
         .pick_folder()
         .map(|p| p.to_string_lossy().into_owned())
