@@ -63,13 +63,13 @@
         </div>
 
         <div class="windows-only card">
-          <h3>📁 Windows folder sharing guidelines</h3>
-          <p class="card-desc">On Windows, you can share a folder natively via File Explorer:</p>
+          <h3>🔗 Cross-Network Architecture (Windows on Different Network)</h3>
+          <p class="card-desc">Since Windows is on a different network, it does not need to configure folder sharing. The bridge operates automatically via USB:</p>
           <ol class="guide-list">
-            <li>Right click your target folder → <strong>Properties</strong>.</li>
-            <li>Go to the <strong>Sharing</strong> tab → click <strong>Share...</strong>.</li>
-            <li>Select your user account, grant Read/Write access, and click Share.</li>
-            <li>Note down your PC's LAN IP address and shared folder credentials to enter in Step 2.</li>
+            <li>Connect your Android phone to the Windows PC via a <strong>USB Cable</strong>.</li>
+            <li>Windows will transfer files to the phone via <strong>ADB (USB)</strong>.</li>
+            <li>Your Android phone (on the same Wi-Fi as Linux) will upload them to the Linux Samba share automatically.</li>
+            <li>Windows monitors the status via ADB, meaning <strong>no direct Windows-to-Linux connection is required!</strong></li>
           </ol>
         </div>
 
