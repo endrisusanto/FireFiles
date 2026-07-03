@@ -36,6 +36,11 @@ fn start_worker(app: AppHandle, cfg: WorkerConfig, state: State<Worker>) -> Resu
     }
 
     let mut cmd = Command::new(worker_exe(&app));
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
     cmd.args([
         "--source",
         &cfg.source,
@@ -152,14 +157,17 @@ fn setup_samba(
     user: String,
     pass: String,
 ) -> Result<String, String> {
-    // Di Linux, jalankan script setup samba via pkexec
+    // Di Linux, jalankan script setup samba via pkexec dengan mengekstrak script dari binary
     #[cfg(target_os = "linux")]
     {
-        let script_path = "/usr/share/firefiles/setup-samba.sh";
+        let temp_script = std::env::temp_dir().join("firefiles-setup-samba.sh");
+        fs::write(&temp_script, include_str!("../../../ubuntu/setup-samba.sh"))
+            .map_err(|e| format!("failed to write temp script: {e}"))?;
+
         let status = Command::new("pkexec")
             .args([
                 "bash",
-                script_path,
+                temp_script.to_str().unwrap(),
                 &share_dir,
                 &user,
                 &share_name,
@@ -167,6 +175,8 @@ fn setup_samba(
             ])
             .status()
             .map_err(|e| format!("pkexec failed: {e}"))?;
+
+        let _ = fs::remove_file(temp_script);
 
         if status.success() {
             Ok(format!("Samba share '{share_name}' siap di {share_dir}"))
