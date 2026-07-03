@@ -30,7 +30,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 24px 16px;
+  overflow-y: auto;
 }
 
 main {
@@ -383,12 +384,16 @@ pre {
   overflow-y: auto;
 }
 
+pre:empty {
+  display: none;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media(max-width: 680px) {
+@media(max-width: 840px) {
   main {
     padding: 16px;
   }
@@ -410,5 +415,11 @@ pre {
   }
   .step-line {
     display: none;
+  }
+}
+
+@media(max-height: 700px) {
+  body {
+    align-items: flex-start;
   }
 }
